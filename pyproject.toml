@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dronewam"
+version = "0.1.0"
+description = "Latent world-action modeling with adaptive rollout depth for drone control."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = [
+    "einops>=0.7",
+    "numpy>=1.24",
+    "Pillow>=9.2",
+    "PyYAML>=6",
+    "timm>=0.9",
+    "torch>=2.2",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.5"]
+visualization = ["matplotlib>=3.6"]
+
+[project.scripts]
+dronewam-build-manifest = "dronewam.cli.build_manifest:main"
+dronewam-train-token-ae = "dronewam.cli.train_token_ae:main"
+dronewam-train = "dronewam.cli.train:main"
+dronewam-eval = "dronewam.cli.evaluate:main"
+dronewam-rollout = "dronewam.cli.rollout:main"
+dronewam-train-adaptive = "dronewam.cli.train_adaptive:main"
+dronewam-eval-joint-horizon = "dronewam.cli.evaluate_joint_horizon:main"
+dronewam-calibrate-joint-horizon = "dronewam.cli.calibrate_joint_horizon_bias:main"
+dronewam-eval-closed-loop = "dronewam.cli.evaluate_closed_loop:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 119
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]

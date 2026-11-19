@@ -1,0 +1,67 @@
+data:
+  train_csv: data/airsim6d_train.csv
+  val_csv: data/airsim6d_val.csv
+  num_frames: 20
+  observed_frames: 4
+  fps: 7
+  base_fps: 7
+  batch_size: 1
+  num_workers: 4
+  crop_top_bottom: 28
+
+encoder:
+  family: drive_jepa
+  model_name: vit_large
+  resolution: [256, 512]
+  patch_size: 16
+  tubelet_size: 2
+  embed_dim: 1024
+  checkpoint: weights/encoder.pt
+  checkpoint_key: target_encoder
+  use_grid_mask: true
+  use_causal_attention: true
+  use_rope: true
+  use_sdpa: true
+  use_activation_checkpointing: true
+  frame_batch_size: 20
+
+token_ae:
+  enabled: true
+  checkpoint: ""
+  num_latent_tokens: 128
+  num_heads: 16
+  encoder_depth: 4
+  decoder_depth: 2
+  mlp_ratio: 4.0
+  input_grid_size: [16, 32]
+  latent_grid_size: [8, 16]
+  temporal_depth: 2
+  temporal_num_heads: 16
+  temporal_mode: block_causal
+  temporal_causal: true
+  dropout: 0.0
+  encoder_mode: parallel
+  loss_type: smooth_l1
+  cos_loss_weight: 0.25
+  latent_reg_weight: 0.0
+  pos_embed_type: learnable
+  temporal_mlp_ratio: 4.0
+  temporal_pos_embed_type: sincos
+  temporal_loss_weight: 0.1
+  normalize_reps: false
+
+optimization:
+  epochs: 80
+  accumulation_steps: 2
+  learning_rate: 1.0e-4
+  start_learning_rate: 1.0e-6
+  final_learning_rate: 0.0
+  weight_decay: 0.04
+  warmup_epochs: 3
+  grad_clip: 1.0
+  dtype: bfloat16
+  seed: 239
+
+runtime:
+  output_dir: outputs/token_ae
+  save_optimizer: false

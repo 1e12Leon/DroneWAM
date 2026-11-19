@@ -1,0 +1,125 @@
+data:
+  train_csv: data/airsim6d_train.csv
+  val_csv: data/airsim6d_val.csv
+  num_frames: 20
+  observed_frames: 4
+  fps: 7
+  base_fps: 7
+  batch_size: 2
+  num_workers: 4
+  crop_top_bottom: 28
+
+model:
+  encoder:
+    family: drive_jepa
+    model_name: vit_large
+    resolution: [256, 512]
+    patch_size: 16
+    tubelet_size: 2
+    embed_dim: 1024
+    checkpoint: weights/encoder.pt
+    checkpoint_key: target_encoder
+    use_grid_mask: true
+    use_causal_attention: true
+    use_rope: true
+    use_sdpa: true
+    use_activation_checkpointing: true
+  token_ae:
+    enabled: true
+    checkpoint: weights/token_ae.pt
+    num_latent_tokens: 128
+    num_heads: 16
+    encoder_depth: 4
+    decoder_depth: 2
+    mlp_ratio: 4.0
+    input_grid_size: [16, 32]
+    latent_grid_size: [8, 16]
+    temporal_depth: 2
+    temporal_num_heads: 16
+    temporal_mode: block_causal
+    temporal_causal: true
+  predictor:
+    depth: 24
+    hidden_dim: 1024
+    num_heads: 16
+    action_dim: 6
+    state_dim: 7
+    frame_causal: true
+    use_rope: true
+    use_activation_checkpointing: true
+  action_head:
+    enabled: true
+    hidden_dim: 192
+  adaptive:
+    enabled: false
+    planner_mode: iterative
+    planner_hidden_dim: 256
+    planner_layers: 2
+    planner_heads: 4
+    policy_hidden_dim: 64
+    policy_token_count: 32
+    min_rollout_depth: 1
+
+loss:
+  teacher_forced_weight: 1.0
+  autoregressive_weight: 1.0
+  action_weight: 0.35
+  action_dim_weights: [2.1, 2.1, 1.0, 0.2, 0.2, 0.8]
+  ar_discount: 0.95
+  rollout_position_weight: 0.07
+  rollout_delta_weight: 2.5
+  rollout_action_delta_weight: 1.0
+  rollout_relative_ate_weight: 0.0
+  rollout_relative_rpe_weight: 20.0
+  rollout_yaw_weight: 0.06
+
+optimization:
+  epochs: 30
+  learning_rate: 5.0e-8
+  start_learning_rate: 1.0e-8
+  final_learning_rate: 1.0e-8
+  weight_decay: 0.04
+  warmup_epochs: 1
+  grad_clip: 1.0
+  dtype: bfloat16
+  seed: 239
+  action_head_lr_multiplier: 1.0
+
+adaptive_training:
+  preference_path: ""
+  preference_windows_per_record: 4
+  planner_epochs: 1
+  planner_reduction: mean
+  planner_metric_power: 1
+  multilength_epochs: 5
+  world_latent_weight: 1.0
+  world_trajectory_weight: 1.0
+  world_horizon_weight: 2.0
+  world_horizon_classification_weight: 0.0
+  world_horizon_rank_weight: 1.0
+  world_horizon_regression_weight: 1.0
+  joint_horizon_epochs: 10
+  dpo_epochs: 40
+  joint_epochs: 1
+  planner_learning_rate: 2.0e-6
+  policy_learning_rate: 1.0e-4
+  dpo_beta: 1.0
+  dpo_weight: 1.0
+  calibration_fraction: 0.2
+  ate_target: 0.04
+  rpe_target: 0.017
+
+runtime:
+  output_dir: outputs/base
+  initial_checkpoint: null
+  resume_checkpoint: null
+  resume_optimizer: false
+  save_optimizer: false
+  save_every_epochs: 5
+  train_encoder: false
+  train_predictor: true
+  train_action_head: true
+  train_adaptive_planner: false
+  train_continuation_policy: false
+  ema_momentum_start: 0.996
+  ema_momentum_end: 0.999
